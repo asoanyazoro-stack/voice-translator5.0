@@ -3,36 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V-Downloader</title>
+    <title>V-Downloader Pro</title>
     <style>
         body { margin: 0; background: #0f172a; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; }
         .box { background: #1e293b; padding: 40px; border-radius: 20px; text-align: center; width: 85%; max-width: 350px; border: 1px solid #334155; }
-        input { width: 100%; padding: 15px; margin: 20px 0; border-radius: 10px; border: none; font-size: 16px; }
-        button { width: 100%; padding: 15px; border-radius: 10px; border: none; background: #ec4899; color: white; font-weight: bold; font-size: 18px; cursor: pointer; }
-        #res { margin-top: 20px; font-weight: bold; }
+        input { width: 100%; padding: 15px; margin: 20px 0; border-radius: 10px; border: none; font-size: 16px; background: #334155; color: white; outline: none; }
+        button { width: 100%; padding: 15px; border-radius: 10px; border: none; background: #ec4899; color: white; font-weight: bold; font-size: 18px; cursor: pointer; transition: 0.3s; }
+        button:active { transform: scale(0.95); background: #d63384; }
+        #res { margin-top: 20px; font-weight: bold; min-height: 50px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
     <div class="box">
         <h2 style="margin:0; color:#8b5cf6;">V-DOWN</h2>
-        <input type="text" id="link" placeholder="Paste Video Link...">
+        <input type="text" id="link" placeholder="Paste Link (TikTok/FB/IG)...">
         <button onclick="go()">DOWNLOAD</button>
         <div id="res">Ready</div>
     </div>
 
     <script>
         async function go() {
-            const url = document.getElementById('link').value;
+            const urlInput = document.getElementById('link').value.trim();
             const res = document.getElementById('res');
-            if(!url) return;
-            res.innerText = "⏳ Fetching...";
+            if(!urlInput) { res.innerText = "⚠️ Paste a link!"; return; }
+
+            res.innerHTML = "⏳ Fetching... please wait";
+
             try {
-                const response = await fetch(`https://api.vkrdown.com/server?v=${encodeURIComponent(url)}`);
-                const data = await response.json();
-                if(data.data && data.data.url) {
-                    res.innerHTML = `<a href="${data.data.url[0].url}" target="_blank" style="color:#10b981; text-decoration:none;">✅ DOWNLOAD NOW</a>`;
-                } else { res.innerText = "❌ Link not found"; }
-            } catch(e) { res.innerText = "❌ Error"; }
+                // We use a CORS Proxy to bypass the security block
+                const proxy = "https://api.allorigins.win/get?url=";
+                const apiTarget = `https://api.vkrdown.com/server?v=${encodeURIComponent(urlInput)}`;
+                
+                const response = await fetch(proxy + encodeURIComponent(apiTarget));
+                const rawData = await response.json();
+                
+                // allorigins returns the result inside a "contents" string
+                const data = JSON.parse(rawData.contents);
+
+                if(data && data.data && data.data.url) {
+                    const finalLink = data.data.url[0].url;
+                    res.innerHTML = `<a href="${finalLink}" target="_blank" style="background:#10b981; color:white; padding:10px 20px; border-radius:8px; text-decoration:none;">✅ DOWNLOAD NOW</a>`;
+                } else {
+                    res.innerText = "❌ Video not found or Private";
+                }
+            } catch(e) {
+                console.error(e);
+                res.innerText = "❌ Server Error. Try again.";
+            }
         }
     </script>
 </body>
