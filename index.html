@@ -1,184 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VisionAI Pro | Powered by Puter</title>
-    <!-- Puter.js SDK - The "Brain" of your app -->
-    <script src="https://puter.com"></script>
-    <link href="https://googleapis.com" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-Down Pro</title>
     <style>
-        :root {
-            --accent: #6366f1; /* Modern Indigo */
-            --secondary: #a855f7; /* Royal Purple */
-            --bg: #030712;
-            --card: rgba(17, 24, 39, 0.8);
-            --glass: rgba(255, 255, 255, 0.08);
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at bottom left, #1e1b4b, #030712);
-            color: white;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .app-container { width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 20px; }
-
-        header { text-align: center; padding: 10px 0; }
-        header h1 { 
-            font-weight: 800; font-size: 2.2rem; margin: 0; 
-            background: linear-gradient(135deg, var(--accent), var(--secondary));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
-        }
-        header p { color: #9ca3af; font-size: 0.85rem; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
-
-        .art-canvas {
-            width: 100%; aspect-ratio: 1 / 1; background: var(--card);
-            border-radius: 30px; border: 1px solid var(--glass);
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden; position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        #result-img { width: 100%; height: 100%; object-fit: cover; display: none; }
-
-        .placeholder-ui { text-align: center; color: #4b5563; }
-        .placeholder-ui i { font-size: 3.5rem; display: block; margin-bottom: 10px; opacity: 0.3; }
-
-        .loader {
-            display: none; border: 3px solid rgba(255,255,255,0.05);
-            border-left-color: var(--accent); border-radius: 50%;
-            width: 50px; height: 50px; animation: spin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .controls {
-            background: var(--card); padding: 24px; border-radius: 30px;
-            backdrop-filter: blur(20px); border: 1px solid var(--glass);
-        }
-
-        textarea {
-            width: 100%; background: #0f172a; border: 1px solid #1f2937;
-            border-radius: 20px; color: white; padding: 18px; font-size: 1rem;
-            resize: none; margin-bottom: 20px; outline: none; transition: 0.3s;
-        }
-        textarea:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
-
-        .style-row { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 25px; padding-bottom: 10px; }
-        .style-row::-webkit-scrollbar { height: 4px; }
-        .style-row::-webkit-scrollbar-thumb { background: var(--glass); border-radius: 10px; }
-
-        .chip {
-            background: #1f2937; padding: 10px 18px; border-radius: 25px;
-            font-size: 0.85rem; white-space: nowrap; cursor: pointer;
-            border: 1px solid transparent; transition: 0.2s;
-        }
-        .chip.active { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
-
-        .main-btn {
-            width: 100%; background: linear-gradient(135deg, var(--accent), var(--secondary));
-            color: white; border: none; padding: 18px; border-radius: 20px;
-            font-weight: 700; font-size: 1.1rem; cursor: pointer;
-            box-shadow: 0 10px 20px -5px rgba(124, 58, 237, 0.5);
-            transition: 0.3s;
-        }
-        .main-btn:active { transform: scale(0.96); }
-        .main-btn:disabled { opacity: 0.6; cursor: wait; }
+        body { margin: 0; background: #0f172a; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; }
+        .box { background: #1e293b; padding: 40px; border-radius: 30px; text-align: center; width: 90%; max-width: 380px; border: 1px solid #334155; }
+        h2 { margin: 0; color: #8b5cf6; font-size: 1.8rem; }
+        p { color: #94a3b8; font-size: 0.8rem; margin: 10px 0 20px; }
+        input { width: 100%; padding: 18px; margin-bottom: 20px; border-radius: 15px; border: none; background: #0f172a; color: white; outline: none; font-size: 16px; box-sizing: border-box; }
+        button { width: 100%; padding: 18px; border-radius: 15px; border: none; background: #ec4899; color: white; font-weight: bold; font-size: 18px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <header>
-        <h1>VisionAI</h1>
-        <p>Puter Cloud Engine</p>
-    </header>
-
-    <div class="art-canvas" id="canvas">
-        <div class="loader" id="loader"></div>
-        <div class="placeholder-ui" id="placeholder">
-            <i>⚡</i>
-            <div id="status-text">Describe anything to begin</div>
-        </div>
-        <img id="result-img" alt="AI Generated Art">
-    </div>
-
-    <div class="controls">
-        <textarea id="prompt" rows="3" placeholder="A cosmic jellyfish in a glass bottle, 8k..."></textarea>
+    <div class="box">
+        <h2>V-DOWN PRO</h2>
+        <p>TikTok • Instagram • Facebook</p>
         
-        <div class="style-row">
-            <div class="chip active" onclick="selectStyle(this, '')">Natural</div>
-            <div class="chip" onclick="selectStyle(this, 'highly detailed, cinematic lighting, masterpiece')">Cinematic</div>
-            <div class="chip" onclick="selectStyle(this, 'anime art style, vibrant colors')">Anime</div>
-            <div class="chip" onclick="selectStyle(this, 'photorealistic, 8k resolution, raw photo')">Realistic</div>
-            <div class="chip" onclick="selectStyle(this, '3d render, unreal engine 5, octane render')">3D Render</div>
-        </div>
-
-        <button class="main-btn" id="gen-btn" onclick="generate()">GENERATE ART</button>
+        <input type="text" id="vUrl" placeholder="Paste link here...">
+        <button onclick="start()">DOWNLOAD</button>
     </div>
-</div>
 
-<script>
-    let selectedStyle = "";
+    <script>
+        function start() {
+            const url = document.getElementById('vUrl').value.trim();
+            if(!url) return alert("Please paste a link!");
 
-    function selectStyle(el, styleText) {
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        el.classList.add('active');
-        selectedStyle = styleText;
-    }
-
-    async function generate() {
-        const promptInput = document.getElementById('prompt');
-        const genBtn = document.getElementById('gen-btn');
-        const img = document.getElementById('result-img');
-        const loader = document.getElementById('loader');
-        const placeholder = document.getElementById('placeholder');
-        const statusText = document.getElementById('status-text');
-
-        if (!promptInput.value) return alert("Please enter a prompt!");
-
-        // 1. Loading State
-        genBtn.disabled = true;
-        genBtn.innerText = "CLOUD PROCESSING...";
-        loader.style.display = "block";
-        placeholder.style.display = "none";
-        img.style.display = "none";
-
-        try {
-            // 2. Puter.js Text-to-Image Call
-            // This happens entirely on Puter's cloud infrastructure
-            const fullPrompt = `${promptInput.value}, ${selectedStyle}`;
-            const imageBlob = await puter.ai.txt2img(fullPrompt);
+            // This bypasses ALL server errors by using a direct web-intent
+            let finalUrl = "";
             
-            // 3. Display Result
-            const objectURL = URL.createObjectURL(imageBlob);
-            img.src = objectURL;
-            
-            img.onload = () => {
-                img.style.display = "block";
-                loader.style.display = "none";
-                genBtn.disabled = false;
-                genBtn.innerText = "GENERATE ART";
-            };
+            if(url.includes("tiktok.com")) {
+                finalUrl = "https://snaptik.app/en?url=" + encodeURIComponent(url);
+            } else if(url.includes("instagram.com")) {
+                finalUrl = "https://saveig.app/en?url=" + encodeURIComponent(url);
+            } else {
+                finalUrl = "https://en.savefrom.net/1-youtube-video-downloader-524/?url=" + encodeURIComponent(url);
+            }
 
-        } catch (error) {
-            console.error("Puter Error:", error);
-            loader.style.display = "none";
-            placeholder.style.display = "block";
-            statusText.innerText = "Cloud Busy. Try again in 10s.";
-            genBtn.disabled = false;
-            genBtn.innerText = "RETRY GENERATION";
+            // Directly opens the working downloader site
+            window.location.href = finalUrl;
         }
-    }
-</script>
-
+    </script>
 </body>
 </html>
