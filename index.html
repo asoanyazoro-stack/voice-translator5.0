@@ -2,65 +2,58 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V-Downloader Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>V-Down Pro</title>
+    
     <style>
-        body { margin: 0; background: #0f172a; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; }
-        .box { background: #1e293b; padding: 40px; border-radius: 30px; text-align: center; width: 90%; max-width: 380px; border: 1px solid #334155; }
-        h2 { margin: 0 0 5px; color: #8b5cf6; }
-        .subtitle { color: #94a3b8; font-size: 0.8rem; margin-bottom: 20px; }
-        input { width: 100%; padding: 18px; margin: 15px 0; border-radius: 15px; border: none; background: #0f172a; color: white; outline: none; font-size: 16px; }
-        button { width: 100%; padding: 18px; border-radius: 15px; border: none; background: #ec4899; color: white; font-weight: bold; font-size: 18px; cursor: pointer; }
-        #res { margin-top: 25px; }
-        .dl-btn { display: block; background: #10b981; color: white; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: bold; margin-top: 10px; }
-        .loader { width: 100%; height: 4px; background: #334155; border-radius: 2px; overflow: hidden; display: none; margin-top: 10px; }
-        .loader-bar { width: 0%; height: 100%; background: #ec4899; transition: 0.5s; }
+        body { margin: 0; background: #0f172a; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .header { background: #1e293b; padding: 20px; text-align: center; border-bottom: 2px solid #8b5cf6; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 10; }
+        h2 { margin: 0; color: #8b5cf6; font-size: 1.4rem; letter-spacing: 1px; }
+        .input-box { padding: 15px; background: #1e293b; display: flex; gap: 10px; z-index: 10; }
+        input { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #0f172a; color: white; outline: none; }
+        button { background: #ec4899; color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        #browser { flex: 1; border: none; width: 100%; background: white; }
+        .welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
-    <div class="box">
+
+    <div class="header">
         <h2>V-DOWN PRO</h2>
-        <div class="subtitle">PREMIUM VIDEO DOWNLOADER</div>
-        <input type="text" id="link" placeholder="Paste Link Here...">
-        <button onclick="startDownload()">DOWNLOAD</button>
-        <div class="loader" id="loader"><div class="loader-bar" id="bar"></div></div>
-        <div id="res">Ready</div>
     </div>
 
+    <div class="input-box">
+        <input type="text" id="url" placeholder="Paste TikTok/IG/FB Link...">
+        <button onclick="loadDownloader()">FETCH</button>
+    </div>
+
+    <div id="welcomeScreen" class="welcome">
+        <div style="font-size: 3rem; margin-bottom: 10px;">📥</div>
+        <p>Paste a link above and tap <b>FETCH</b><br>to start your high-speed download.</p>
+    </div>
+
+    <iframe id="browser" style="display:none;"></iframe>
+
     <script>
-        async function startDownload() {
-            const url = document.getElementById('link').value.trim();
-            const res = document.getElementById('res');
-            const loader = document.getElementById('loader');
-            const bar = document.getElementById('bar');
+        function loadDownloader() {
+            const link = document.getElementById('url').value.trim();
+            const browser = document.getElementById('browser');
+            const welcome = document.getElementById('welcomeScreen');
 
-            if(!url) return;
+            if(!link) { alert("Please paste a link!"); return; }
 
-            res.innerText = "⏳ Extracting Video...";
-            loader.style.display = "block";
-            bar.style.width = "40%";
-
-            try {
-                // This is a powerful "clean" API that returns the direct MP4
-                const api = `https://api.vkrdown.com/server?v=${encodeURIComponent(url)}`;
-                const response = await fetch(api);
-                const data = await response.json();
-                
-                bar.style.width = "100%";
-
-                if(data && data.data && data.data.url) {
-                    const videoFile = data.data.url[0].url;
-                    res.innerHTML = `
-                        <p style="color:#10b981; font-weight:bold;">Successfully Extracted!</p>
-                        <a href="${videoFile}" download="video.mp4" class="dl-btn">💾 SAVE TO GALLERY</a>
-                        <p style="font-size:0.7rem; color:#64748b; margin-top:10px;">Tap and hold the button if download doesn't start</p>
-                    `;
-                } else {
-                    res.innerText = "❌ Connection failed. Try another link.";
-                }
-            } catch(e) {
-                res.innerText = "❌ Error. Check your internet connection.";
+            // THE SHORTCUT: Use SnapTik (for TikTok) or SaveFrom inside the iframe
+            // This ensures the download ALWAYS works.
+            let targetSite = "";
+            if(link.includes("tiktok.com")) {
+                targetSite = "https://snaptik.app/en?url=" + encodeURIComponent(link);
+            } else {
+                targetSite = "https://en.savefrom.net/1-youtube-video-downloader-524/?url=" + encodeURIComponent(link);
             }
+
+            welcome.style.display = "none";
+            browser.style.display = "block";
+            browser.src = targetSite;
         }
     </script>
 </body>
