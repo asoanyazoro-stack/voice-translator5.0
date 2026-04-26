@@ -1,1 +1,91 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>AI Video Engine v1.0</title> <style> :root { --space-black: #050505; --plasma-purple: #9d50bb; --star-white: #ffffff; } body { background-color: var(--space-black); color: var(--star-white); font-family: 'Arial', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; } .engine-card { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #333; width: 90%; max-width: 500px; text-align: center; } textarea { width: 100%; height: 100px; background: #000; border: 1px solid var(--plasma-purple); color: white; padding: 10px; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; } .generate-btn { background: linear-gradient(45deg, #6e48aa, #9d50bb); color: white; border: none; padding: 15px 30px; font-weight: bold; border-radius: 50px; cursor: pointer; width: 100%; } #status { margin-top: 20px; color: #888; font-size: 0.9rem; } #videoPlayer { margin-top: 20px; width: 100%; display: none; border-radius: 10px; } </style> </head> <body> <div class="engine-card"> <h1>AI VIDEO ENGINE</h1> <p>Convert your vision into motion</p> <textarea id="prompt" placeholder="Describe your video... (e.g., A sunset over a digital city)"></textarea> <button class="generate-btn" onclick="startGeneration()">INITIATE GENERATION</button> <div id="status">Ready for input...</div> <video id="videoPlayer" controls></video> </div> <script> // ========================================== // SPACE 1: PUT YOUR JSON2VIDEO API KEY HERE // ========================================== const MY_API_KEY = "tdhT5d2GK66b8TwqVWcNDdyjPJbwZ8pdflyBDpoa"; async function startGeneration() { const promptValue = document.getElementById('prompt').value; if(!promptValue) return alert("Space command missing: Please enter a prompt."); updateStatus("🚀 Launching request to JSON2Video..."); // ========================================== // SPACE 2: VIDEO CONFIGURATION (JSON DATA) // ========================================== const videoSettings = { "width": 720, "height": 1280, "fps": 30, "scenes": [ { "elements": [ { "type": "text", "text": promptValue, "duration": 5, "style": "bold", "color": "#ffffff" } ] } ] }; try { const response = await fetch('https://api.json2video.com/v2/movie', { method: 'POST', headers: { 'x-api-key': MY_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(videoSettings) }); const data = await response.json(); if(data.project_id) { updateStatus("🛰️ Video is rendering in orbit... checking status."); pollStatus(data.project_id); } else { updateStatus("❌ Error: Check your API Key or Credits."); } } catch (error) { updateStatus("❌ Connection lost in space."); console.error(error); } } async function pollStatus(projectId) { const res = await fetch(`https://api.json2video.com/v2/movie?project_id=${projectId}`, { headers: { 'x-api-key': MY_API_KEY } }); const data = await res.json(); if (data.status === 'completed') { updateStatus("✅ Mission Complete! Video Received."); const player = document.getElementById('videoPlayer'); player.src = data.url; player.style.display = "block"; } else if (data.status === 'failed') { updateStatus("💥 Generation failed. Check API limits."); } else { updateStatus(`⏳ Status: ${data.status.toUpperCase()}...`); // Check again in 5 seconds setTimeout(() => pollStatus(projectId), 5000); } } function updateStatus(msg) { document.getElementById('status').innerText = msg; } </script> </body> </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Generator Pro</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #0b0b0e; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: #16161a; padding: 30px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.7); width: 100%; max-width: 400px; border: 1px solid #2a2a2a; }
+        h1 { font-size: 1.4rem; color: #00f2ff; text-align: center; margin-bottom: 25px; letter-spacing: 1px; }
+        label { font-size: 0.9rem; color: #aaa; }
+        input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border-radius: 8px; border: 1px solid #333; background: #0b0b0e; color: #fff; box-sizing: border-box; outline: none; }
+        input:focus { border-color: #00f2ff; }
+        button { width: 100%; padding: 14px; background: #00f2ff; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1rem; }
+        button:hover { background: #00c8d4; transform: translateY(-1px); }
+        button:active { transform: translateY(1px); }
+        #console { margin-top: 25px; background: #000; border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 0.8rem; border: 1px solid #333; height: 120px; overflow-y: auto; color: #00ff95; }
+        .err { color: #ff4d4d; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AI VIDEO ENGINE</h1>
+    <label>Video Text Content:</label>
+    <input type="text" id="userInput" placeholder="e.g. Welcome to my new app!">
+    
+    <button onclick="generateVideo()">RUN GENERATOR</button>
+
+    <div id="console">System: Ready...</div>
+</div>
+
+<script>
+    async function generateVideo() {
+        const consoleBox = document.getElementById('console');
+        const text = document.getElementById('userInput').value;
+        
+        // Your integrated API Key
+        const API_KEY = "tdhT5d2GK66b8TwqVWcNDdyjPJbwZ8pdflyBDpoa"; 
+
+        if (!text) {
+            consoleBox.innerHTML += `<br><span class="err">[!] Error: No text entered.</span>`;
+            return;
+        }
+
+        consoleBox.innerHTML += `<br>[>] Requesting video for: "${text}"`;
+
+        const movieData = {
+            "comment": "App Generation",
+            "settings": { "resolution": "720p" },
+            "elements": [
+                {
+                    "type": "text",
+                    "text": text,
+                    "duration": 5,
+                    "style": "bold",
+                    "color": "#ffffff",
+                    "font_size": 50
+                }
+            ]
+        };
+
+        try {
+            const response = await fetch('https://api.json2video.com/v2/movies', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': API_KEY
+                },
+                body: JSON.stringify(movieData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                consoleBox.innerHTML += `<br>[+] SUCCESS! ID: ${data.project}`;
+                consoleBox.innerHTML += `<br>[+] Rendering has started...`;
+            } else {
+                consoleBox.innerHTML += `<br><span class="err">[!] API ERROR: ${data.message || 'Unknown error'}</span>`;
+            }
+        } catch (err) {
+            consoleBox.innerHTML += `<br><span class="err">[!] CONNECTION ERROR: Check your internet.</span>`;
+        }
+        
+        // Auto-scroll the console
+        consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+</script>
+
+</body>
+</html>
