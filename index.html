@@ -8,56 +8,55 @@
         body { font-family: 'Segoe UI', sans-serif; background: #0b0b0e; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: #16161a; padding: 30px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.7); width: 100%; max-width: 400px; border: 1px solid #2a2a2a; }
         h1 { font-size: 1.4rem; color: #00f2ff; text-align: center; margin-bottom: 25px; letter-spacing: 1px; }
-        label { font-size: 0.9rem; color: #aaa; }
         input { width: 100%; padding: 12px; margin: 10px 0 20px 0; border-radius: 8px; border: 1px solid #333; background: #0b0b0e; color: #fff; box-sizing: border-box; outline: none; }
         button { width: 100%; padding: 14px; background: #00f2ff; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1rem; }
-        button:hover { background: #00c8d4; }
-        #console { margin-top: 25px; background: #000; border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 0.8rem; border: 1px solid #333; height: 120px; overflow-y: auto; color: #00ff95; }
+        button:disabled { background: #333; color: #777; cursor: not-allowed; }
+        #console { margin-top: 25px; background: #000; border-radius: 8px; padding: 12px; font-family: 'Courier New', monospace; font-size: 0.85rem; border: 1px solid #333; height: 160px; overflow-y: auto; color: #00ff95; line-height: 1.4; }
         .err { color: #ff4d4d; }
+        .link-box { margin-top: 15px; padding: 10px; background: #00f2ff22; border: 1px dashed #00f2ff; border-radius: 5px; text-align: center; }
+        .link-box a { color: #00f2ff; font-weight: bold; text-decoration: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="mainApp">
     <h1>AI VIDEO ENGINE</h1>
-    <label>Video Text Content:</label>
-    <input type="text" id="userInput" placeholder="e.g. A man running">
-    
-    <button onclick="generateVideo()">RUN GENERATOR</button>
-
+    <input type="text" id="userInput" placeholder="e.g. A man walking in the park">
+    <button id="genBtn" onclick="generateVideo()">RUN GENERATOR</button>
     <div id="console">System: Ready...</div>
+    <div id="resultArea"></div>
 </div>
 
 <script>
+    const API_KEY = "tdhT5d2GK66b8TwqVWcNDdyjPJbwZ8pdflyBDpoa";
+    const PROXY = "https://corsproxy.io/?";
+    const API_URL = "https://api.json2video.com/v2/movies";
+
     async function generateVideo() {
         const consoleBox = document.getElementById('console');
+        const resultArea = document.getElementById('resultArea');
         const text = document.getElementById('userInput').value;
-        
-        // Your API Key
-        const API_KEY = "tdhT5d2GK66b8TwqVWcNDdyjPJbwZ8pdflyBDpoa"; 
-        
-        // FIXED URL: Added a CORS proxy to prevent the error you saw
-        const PROXY = "https://corsproxy.io/?";
-        const API_URL = "https://api.json2video.com/v2/movies";
+        const btn = document.getElementById('genBtn');
 
-        if (!text) {
-            consoleBox.innerHTML += `<br><span class="err">[!] Error: No text entered.</span>`;
-            return;
-        }
+        if (!text) return alert("Please enter text for the video.");
 
-        consoleBox.innerHTML += `<br>[>] Sending request via Proxy...`;
+        // UI Reset
+        btn.disabled = true;
+        btn.innerText = "Processing...";
+        resultArea.innerHTML = "";
+        consoleBox.innerHTML = `[>] Contacting API via Secure Proxy...`;
 
         const movieData = {
-            "comment": "App Generation",
             "settings": { "resolution": "720p" },
             "elements": [
-                {
-                    "type": "text",
-                    "text": text,
-                    "duration": 5,
+                { 
+                    "type": "text", 
+                    "text": text, 
+                    "duration": 5, 
                     "style": "bold",
+                    "font_size": 40,
                     "color": "#ffffff",
-                    "font_size": 50
+                    "background_color": "#000000"
                 }
             ]
         };
@@ -65,27 +64,69 @@
         try {
             const response = await fetch(PROXY + encodeURIComponent(API_URL), {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': API_KEY
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'x-api-key': API_KEY 
                 },
                 body: JSON.stringify(movieData)
             });
 
             const data = await response.json();
-
-            if (response.ok) {
-                consoleBox.innerHTML += `<br>[+] SUCCESS! ID: ${data.project}`;
-                consoleBox.innerHTML += `<br>[+] Rendering... please wait.`;
+            
+            if (data.project) {
+                consoleBox.innerHTML += `<br>[+] Project Created: ${data.project}`;
+                consoleBox.innerHTML += `<br>[~] Rendering started...`;
+                checkStatus(data.project);
             } else {
-                consoleBox.innerHTML += `<br><span class="err">[!] API ERROR: ${data.message || 'Check credits'}</span>`;
+                throw new Error(data.message || "Invalid API Response");
             }
         } catch (err) {
-            consoleBox.innerHTML += `<br><span class="err">[!] CONNECTION BLOCKED: Try again in a moment.</span>`;
-            console.error(err);
+            consoleBox.innerHTML += `<br><span class="err">[!] Error: ${err.message}</span>`;
+            btn.disabled = false;
+            btn.innerText = "RUN GENERATOR";
         }
+    }
+
+    async function checkStatus(projectId) {
+        const consoleBox = document.getElementById('console');
+        const resultArea = document.getElementById('resultArea');
+        const btn = document.getElementById('genBtn');
         
-        consoleBox.scrollTop = consoleBox.scrollHeight;
+        let attempts = 0;
+        const maxAttempts = 20; // Will stop checking after ~2 minutes
+
+        const interval = setInterval(async () => {
+            attempts++;
+            consoleBox.innerHTML += ".";
+
+            try {
+                // GET request to check status
+                const checkUrl = `${API_URL}?project=${projectId}`;
+                const res = await fetch(PROXY + encodeURIComponent(checkUrl), {
+                    method: 'GET',
+                    headers: { 'x-api-key': API_KEY }
+                });
+                
+                const statusData = await res.json();
+
+                if (statusData.movie_url) {
+                    clearInterval(interval);
+                    consoleBox.innerHTML += `<br>[✅] VIDEO COMPLETE!`;
+                    resultArea.innerHTML = `
+                        <div class="link-box">
+                            <a href="${statusData.movie_url}" target="_blank">📥 DOWNLOAD VIDEO</a>
+                        </div>`;
+                    btn.disabled = false;
+                    btn.innerText = "RUN GENERATOR";
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(interval);
+                    consoleBox.innerHTML += `<br><span class="err">[!] Timeout: Video is taking too long.</span>`;
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                console.error("Polling error", e);
+            }
+        }, 6000); // Check every 6 seconds
     }
 </script>
 
